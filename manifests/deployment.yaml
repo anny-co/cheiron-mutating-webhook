@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhook-server
+  namespace: webhook-demo
+  labels:
+    app.kubernetes.io/name: cheiron-mutating-webhook
+    app.kubernetes.io/part-of: cheiron.anny.co
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cheiron-mutating-webhook
+      app.kubernetes.io/part-of: cheiron.anny.co
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cheiron-mutating-webhook
+        app.kubernetes.io/part-of: cheiron.anny.co
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+      containers:
+      - name: server
+        image: ghcr.io/anny-co/cheiron-mutating-webhook:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8443
+          name: webhook-api
+        volumeMounts:
+        - name: cheiron-mutating-webhook-tls-certs
+          mountPath: /run/secrets/tls
+          readOnly: true
+        - name: cheiron-mutating-webhook-secrets
+          mountPath: /etc/cheiron
+          readOnly: true
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            scheme: HTTPS
+            port: webhook-api
+          failureThreshold: 1
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            scheme: HTTPS
+            port: webhook-api
+          failureThreshold: 1
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        resources:
+          limits:
+            memory: 128Mi
+            cpu: 250m
+          requests:
+            memory: 64Mi
+            cpu: 10m
+      volumes:
+      - name: cheiron-mutating-webhook-tls-certs
+        secret:
+          secretName: cheiron-mutating-webhook-server-tls
+      - name: cheiron-mutating-webhook-secrets
+        configMap:
+          name: cheiron-mutating-webhook-secrets

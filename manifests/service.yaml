@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cheiron-mutating-webhook
+  namespace: cheiron-system
+  labels:
+    app.kubernetes.io/name: cheiron-mutating-webhook
+    app.kubernetes.io/part-of: cheiron.anny.co
+spec:
+  selector:
+    app.kubernetes.io/name: cheiron-mutating-webhook
+  ports:
+    - port: 443
+      targetPort: webhook-api
