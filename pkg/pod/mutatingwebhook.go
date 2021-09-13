@@ -42,12 +42,12 @@ func (a *PodMutator) Handle(ctx context.Context, req admission.Request) admissio
 
 	// TODO: implement pod augmentation
 
-	marshaledServiceAccount, err := json.Marshal(pod)
+	marshaledPod, err := json.Marshal(pod)
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError, err)
 	}
 
-	return admission.PatchResponseFromRaw(req.Object.Raw, marshaledServiceAccount)
+	return admission.PatchResponseFromRaw(req.Object.Raw, marshaledPod)
 }
 
 // PodAnnotator implements admission.DecoderInjector.
