@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	admission "k8s.io/api/admission/v1beta1"
@@ -144,20 +143,20 @@ func doServeAdmitFunc(w http.ResponseWriter, r *http.Request, admit admitFunc) (
 
 // serveAdmitFunc is a wrapper around doServeAdmitFunc that adds error handling and logging.
 func serveAdmitFunc(w http.ResponseWriter, r *http.Request, admit admitFunc) {
-	log.Print("Handling webhook request ...")
+	logger.Info("handling webhook request ...")
 
 	var writeErr error
 	if bytes, err := doServeAdmitFunc(w, r, admit); err != nil {
-		log.Printf("Error handling webhook request: %v", err)
+		logger.Errorf("error handling webhook request: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		_, writeErr = w.Write([]byte(err.Error()))
 	} else {
-		log.Print("Webhook request handled successfully")
+		logger.Info("webhook request handled successfully")
 		_, writeErr = w.Write(bytes)
 	}
 
 	if writeErr != nil {
-		log.Printf("Could not write response: %v", writeErr)
+		logger.Errorf("Could not write response: %v", writeErr)
 	}
 }
 
